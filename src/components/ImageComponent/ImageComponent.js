@@ -1,5 +1,7 @@
 import React from "react";
 
+import "./ImageComponent.css";
+
 const ImageComponent = ({ photo, loading }) => {
   if (loading) {
     return <h4>Loading...</h4>;

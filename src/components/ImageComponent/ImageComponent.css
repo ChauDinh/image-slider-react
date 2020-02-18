@@ -1,0 +1,4 @@
+.image img {
+	border-radius: 5px;
+	box-shadow: 3px 3px 10px rgba(200, 200, 200, 0.4);
+}

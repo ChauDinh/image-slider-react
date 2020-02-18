@@ -3,17 +3,19 @@ import React from "react";
 import "./ImageGaleries.css";
 import ImageComponent from "../ImageComponent/ImageComponent";
 import Pagination from "../Pagination";
+import { useInterval } from "../useInterval";
 
 const ImageGalaries = () => {
 	const [photos, setPhotos] = React.useState([]);
 	const [loading, setLoading] = React.useState(false);
-	let [currentPage, setCurrentPage] = React.useState(1);
+	let [currentPage, setCurrentPage] = React.useState(0);
+	let [isPlaying, setIsPlaying] = React.useState(false);
 
 	React.useEffect(() => {
 		const fetchPhotos = async () => {
 			setLoading(true);
 			await fetch(
-							"https://jsonplaceholder.typicode.com/photos?_limit=20"
+				"https://jsonplaceholder.typicode.com/photos?_limit=20"
 			)
 				.then(res => res.json())
 				.then(res => {
@@ -26,10 +28,20 @@ const ImageGalaries = () => {
 		fetchPhotos();
 	}, []);
 
+	React.useEffect(() => {
+		if (isPlaying) {
+			let timeoutId = setTimeout(() => {
+				setCurrentPage(
+					(currentPage + 1) % photos.length
+				);
+			}, 2000);
+
+			return () => clearTimeout(timeoutId);
+		}
+	}, [currentPage, isPlaying]);
+
 	// Get the current photo
-	const indexOfLastPhoto = currentPage * 1;
-	const indexOfFistPhoto = indexOfLastPhoto - 1;
-	const currentPhoto = photos.slice(indexOfFistPhoto, indexOfLastPhoto);
+	const currentPhoto = photos.slice(currentPage);
 
 	return (
 		<div className="ImageGalaries">
@@ -38,30 +50,58 @@ const ImageGalaries = () => {
 				loading={loading}
 				key={currentPhoto.id}
 			/>
-			{indexOfFistPhoto < 1 ? null : (
+
+			<div className="button-control">
 				<button
-					onClick={() =>
-						setCurrentPage(--currentPage)
-					}
+					onClick={() => {
+						setCurrentPage(
+							currentPage > 0
+								? currentPage -
+										1
+								: (currentPage -
+										1 +
+										photos.length) %
+										photos.length
+						);
+						setIsPlaying(false);
+					}}
 				>
 					prev
 				</button>
-			)}
-			<p>1, 2, 3, 4, ..., 9, 10, 11, 12</p>
-			{indexOfLastPhoto > photos.length - 1 ? null : (
+
+				<Pagination
+					currentPage={currentPage + 1}
+					numberPhotos={photos.length}
+				/>
 				<button
-					onClick={() =>
-						setCurrentPage(++currentPage)
-					}
+					onClick={() => {
+						setCurrentPage(
+							(currentPage + 1) %
+								photos.length
+						);
+						setIsPlaying(false);
+					}}
 				>
 					next
 				</button>
-			)}
-
-			<Pagination
-				currentPage={currentPage}
-				numberPhotos={photos.length}
-			/>
+				{isPlaying ? (
+					<button
+						onClick={() =>
+							setIsPlaying(false)
+						}
+					>
+						◼︎
+					</button>
+				) : (
+					<button
+						onClick={() =>
+							setIsPlaying(true)
+						}
+					>
+						▶︎
+					</button>
+				)}
+			</div>
 		</div>
 	);
 };
